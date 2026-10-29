@@ -8,7 +8,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 @XmlType(propOrder = {"id", "matriculaCoche", "marca", "modelo", "equipamiento"})
 public class Coche {
@@ -17,7 +16,7 @@ public class Coche {
     private String matriculaCoche;
     private String marca;
     private String modelo;
-    private List<String> equipamiento;
+    private List<Equipamiento> equipamiento;
 
     public Coche(String matriculaCoche, String marca, String modelo) {
         this.id = idNext++;
@@ -70,19 +69,27 @@ public class Coche {
 
 
     @XmlElement(name = "equipamiento")
-    public List<String> getEquipamiento() {
+    public List<Equipamiento> getEquipamiento() {
         return equipamiento;
     }
 
-    public void setEquipamiento(List<String> equipamiento) {
+    public void setEquipamiento(List<Equipamiento> equipamiento) {
         this.equipamiento = equipamiento;
     }
 
-    public void annadirEquipamiento( String equipamientos) throws CocheException {
-        if (equipamiento.stream().noneMatch(e-> e.equalsIgnoreCase(equipamientos))){
-            equipamiento.add(equipamientos);
+    public void annadirEquipamiento(Equipamiento equipamientos) throws CocheException {
+        if (equipamiento.stream().anyMatch(e -> e.equals(equipamientos))) {
+            throw new CocheException("Este Equipamiento ya existe");
+        }
+        equipamiento.add(equipamientos);
+    }
+
+    public void borrar(Equipamiento equipamientos) throws CocheException {
+        if (!equipamiento.removeIf(e -> e.equals(equipamientos))) {
+            throw new CocheException("El equipamiento no existe en el coche");
         }
     }
+
 
 
 

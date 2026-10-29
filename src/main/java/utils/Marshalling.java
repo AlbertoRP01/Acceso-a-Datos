@@ -1,4 +1,7 @@
-package model;
+package utils;
+
+import model.Coche;
+import model.Concesionario;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
