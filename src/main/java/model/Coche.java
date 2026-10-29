@@ -7,7 +7,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @XmlType(propOrder = {"id", "matriculaCoche", "marca", "modelo", "equipamiento"})
 public class Coche {
@@ -90,8 +92,23 @@ public class Coche {
         }
     }
 
+    public Equipamiento modificarEquipamiento(Equipamiento equipamientoViejo, Equipamiento equipamientoNuevo) throws CocheException{
+        if (equipamiento.stream().anyMatch(e -> e.equals(equipamientoNuevo))){
+            throw new CocheException("El equipamiento" + equipamientoNuevo + " Ya existe");
+        }
+        Equipamiento encontrado = equipamiento.stream()
+                .filter(e -> e.equals(equipamientoViejo))
+                .findFirst()
+                .orElseThrow( () -> new CocheException("Ese Equipamiento"  + equipamientoViejo + " No existe"));
+                    equipamiento.set(equipamiento.indexOf(encontrado), equipamientoNuevo);
+                    return equipamientoNuevo;
+    }
 
-
+    public List<Equipamiento> ordenarEquipamiento(){
+        return equipamiento.stream()
+                .sorted((e1, e2) -> e1.getExtra().compareToIgnoreCase(e2.getExtra()))
+                .collect(Collectors.toList());
+    }
 
     @Override
     public String toString() {

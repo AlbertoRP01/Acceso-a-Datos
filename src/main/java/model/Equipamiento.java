@@ -4,6 +4,7 @@ import exceptions.CocheException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Equipamiento {
     private String extra;
@@ -26,19 +27,21 @@ public class Equipamiento {
         this.equipamiento = equipamiento;
     }
 
-    public void annadirEquipamiento(String extra) throws CocheException{
-        if (equipamiento.stream().anyMatch(e -> e.equalsIgnoreCase(extra))){
+    public void annadirExtra(String extra) throws CocheException {
+        if (equipamiento.stream().anyMatch(e -> e.equalsIgnoreCase(extra))) {
             throw new CocheException("Este extra ya existe");
         }
         equipamiento.add(extra);
     }
-    public void borrarPieza(String extra) throws CocheException{
-        if (!equipamiento.removeIf(e -> e.equalsIgnoreCase(extra))){
+
+    public void borrarExtra(String extra) throws CocheException {
+        if (!equipamiento.removeIf(e -> e.equalsIgnoreCase(extra))) {
             throw new CocheException("Este extra " + extra + " no existe");
         }
     }
-    public String modificarExtra(String extras, String nuevoExtra) throws CocheException{
-        if (equipamiento.stream().anyMatch(e -> e.equalsIgnoreCase(nuevoExtra))){
+
+    public String modificarExtra(String extras, String nuevoExtra) throws CocheException {
+        if (equipamiento.stream().anyMatch(e -> e.equalsIgnoreCase(nuevoExtra))) {
             throw new CocheException("El extra " + nuevoExtra + " ya existe");
         }
         String encontrado = equipamiento.stream()
@@ -49,6 +52,11 @@ public class Equipamiento {
         return nuevoExtra;
     }
 
+    public List<String> ordenarExtras() {
+        return equipamiento.stream()
+                .sorted((e1, e2) -> e1.compareToIgnoreCase(e2))
+                .collect(Collectors.toList());
+    }
 
     @Override
     public boolean equals(Object o) {
