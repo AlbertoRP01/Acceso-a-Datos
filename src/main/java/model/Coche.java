@@ -2,12 +2,9 @@ package model;
 
 import exceptions.CocheException;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,15 +15,14 @@ public class Coche {
     private String matriculaCoche;
     private String marca;
     private String modelo;
-    private List<Equipamiento> equipamiento;
+    private List<Equipamiento> equipamientos;
 
-    public Coche(String matriculaCoche, String marca, String modelo) {
+    public Coche() {
         this.id = idNext++;
-        this.matriculaCoche = matriculaCoche;
-        this.marca = marca;
-        this.modelo = modelo;
-        this.equipamiento = new ArrayList<>();
-
+        setMatriculaCoche(this.matriculaCoche); ;
+        setMarca(this.matriculaCoche);
+        setModelo(this.modelo);
+        equipamientos = new ArrayList<>();
     }
 
 
@@ -46,6 +42,9 @@ public class Coche {
     }
 
     public void setMatriculaCoche(String matriculaCoche) {
+        if (matriculaCoche == null || matriculaCoche.isEmpty()){
+            throw new CocheException("El coche debe de tener matricula");
+        }
         this.matriculaCoche = matriculaCoche;
     }
 
@@ -56,6 +55,9 @@ public class Coche {
     }
 
     public void setMarca(String marca) {
+        if (marca == null || marca.isEmpty()){
+            throw new CocheException("El coche debe de tener marca");
+        }
         this.marca = marca;
     }
 
@@ -66,46 +68,49 @@ public class Coche {
     }
 
     public void setModelo(String modelo) {
+        if (modelo == null || modelo.isEmpty()){
+            throw new CocheException("El coche debe de tener modelo");
+        }
         this.modelo = modelo;
     }
 
 
     @XmlElement(name = "equipamiento")
-    public List<Equipamiento> getEquipamiento() {
-        return equipamiento;
+    public List<Equipamiento> getEquipamientos() {
+        return equipamientos;
     }
 
-    public void setEquipamiento(List<Equipamiento> equipamiento) {
-        this.equipamiento = equipamiento;
+    public void setEquipamientos(List<Equipamiento> equipamientos) {
+        this.equipamientos = equipamientos;
     }
 
     public void annadirEquipamiento(Equipamiento equipamientos) throws CocheException {
-        if (equipamiento.stream().anyMatch(e -> e.equals(equipamientos))) {
+        if (this.equipamientos.stream().anyMatch(e -> e.equals(equipamientos))) {
             throw new CocheException("Este Equipamiento ya existe");
         }
-        equipamiento.add(equipamientos);
+        this.equipamientos.add(equipamientos);
     }
 
     public void borrar(Equipamiento equipamientos) throws CocheException {
-        if (!equipamiento.removeIf(e -> e.equals(equipamientos))) {
+        if (!this.equipamientos.removeIf(e -> e.equals(equipamientos))) {
             throw new CocheException("El equipamiento no existe en el coche");
         }
     }
 
     public Equipamiento modificarEquipamiento(Equipamiento equipamientoViejo, Equipamiento equipamientoNuevo) throws CocheException{
-        if (equipamiento.stream().anyMatch(e -> e.equals(equipamientoNuevo))){
+        if (equipamientos.stream().anyMatch(e -> e.equals(equipamientoNuevo))){
             throw new CocheException("El equipamiento" + equipamientoNuevo + " Ya existe");
         }
-        Equipamiento encontrado = equipamiento.stream()
+        Equipamiento encontrado = equipamientos.stream()
                 .filter(e -> e.equals(equipamientoViejo))
                 .findFirst()
                 .orElseThrow( () -> new CocheException("Ese Equipamiento"  + equipamientoViejo + " No existe"));
-                    equipamiento.set(equipamiento.indexOf(encontrado), equipamientoNuevo);
+                    equipamientos.set(equipamientos.indexOf(encontrado), equipamientoNuevo);
                     return equipamientoNuevo;
     }
 
     public List<Equipamiento> ordenarEquipamiento(){
-        return equipamiento.stream()
+        return equipamientos.stream()
                 .sorted((e1, e2) -> e1.getExtra().compareToIgnoreCase(e2.getExtra()))
                 .collect(Collectors.toList());
     }
@@ -118,7 +123,7 @@ public class Coche {
         sb.append("Matricula: ").append(getMatriculaCoche()).append("\n");
         sb.append("Marca: ").append(getMarca()).append("\n");
         sb.append("Modelo: ").append(getModelo()).append("\n");
-        sb.append("Equipamiento: ").append(getEquipamiento());
+        sb.append("Equipamiento: ").append(getEquipamientos());
         return sb.toString();
     }
 

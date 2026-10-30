@@ -12,7 +12,7 @@ public class Marshalling {
     public static void main(String[] args) {
         try {
             Concesionario concesionario = new Concesionario();
-            Coche coche = new Coche("jwiogjswoi", "fhoiwhgowi", "jfoiwjgfoiw");
+            Coche coche = new Coche();
             concesionario.getCoches().add(coche);
             JAXBContext context = JAXBContext.newInstance(Concesionario.class);
             Marshaller marshaller = context.createMarshaller();

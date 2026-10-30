@@ -45,7 +45,7 @@ public class Equipamiento {
             throw new CocheException("El extra " + nuevoExtra + " ya existe");
         }
         String encontrado = equipamiento.stream()
-                .filter(e -> e.equalsIgnoreCase(extras))
+                .filter(e -> e.equalsIgnoreCase(extra))
                 .findFirst()
                 .orElseThrow(() -> new CocheException("Este extra " + extras + " no existe"));
         equipamiento.set(equipamiento.indexOf(encontrado), nuevoExtra);
