@@ -40,15 +40,26 @@ public class Equipamiento {
         }
     }
 
-    public String modificarExtra(String extras, String nuevoExtra) throws CocheException {
-        if (equipamiento.stream().anyMatch(e -> e.equalsIgnoreCase(nuevoExtra))) {
-            throw new CocheException("El extra " + nuevoExtra + " ya existe");
+    public String modificarExtra(String extraViejo, String nuevoExtra) throws CocheException {
+        if (extraViejo == null || extraViejo.trim().isEmpty()) {
+            throw new CocheException("Debe seleccionar el extra que quiere modificar");
+        }
+        if (nuevoExtra == null || nuevoExtra.trim().isEmpty()) {
+            throw new CocheException("Debe indicar el nuevo nombre del extra");
         }
         String encontrado = equipamiento.stream()
-                .filter(e -> e.equalsIgnoreCase(extra))
+                .filter(e -> e.equalsIgnoreCase(extraViejo))
                 .findFirst()
-                .orElseThrow(() -> new CocheException("Este extra " + extras + " no existe"));
-        equipamiento.set(equipamiento.indexOf(encontrado), nuevoExtra);
+                .orElseThrow(() -> new CocheException("El extra " + extraViejo + " no existe"));
+
+        // Se ignora el propio extra viejo para permitir, por ejemplo, cambiar solo mayúsculas/minúsculas
+        if (equipamiento.stream()
+                .filter(e -> !e.equalsIgnoreCase(encontrado))
+                .anyMatch(e -> e.equalsIgnoreCase(nuevoExtra))) {
+            throw new CocheException("El extra " + nuevoExtra + " ya existe");
+        }
+
+        equipamiento.replaceAll(e -> e.equalsIgnoreCase(encontrado) ? nuevoExtra : e);
         return nuevoExtra;
     }
 

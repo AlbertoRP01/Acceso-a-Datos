@@ -97,16 +97,27 @@ public class Coche {
         }
     }
 
-    public Equipamiento modificarEquipamiento(Equipamiento equipamientoViejo, Equipamiento equipamientoNuevo) throws CocheException{
-        if (equipamientos.stream().anyMatch(e -> e.equals(equipamientoNuevo))){
-            throw new CocheException("El equipamiento" + equipamientoNuevo + " Ya existe");
+    public Equipamiento modificarEquipamiento(Equipamiento equipamientoViejo, Equipamiento equipamientoNuevo) throws CocheException {
+        if (equipamientoViejo == null) {
+            throw new CocheException("Debe seleccionar el equipamiento que quiere modificar");
+        }
+        if (equipamientoNuevo == null) {
+            throw new CocheException("Debe indicar los nuevos datos del equipamiento");
         }
         Equipamiento encontrado = equipamientos.stream()
                 .filter(e -> e.equals(equipamientoViejo))
                 .findFirst()
-                .orElseThrow( () -> new CocheException("Ese Equipamiento"  + equipamientoViejo + " No existe"));
-                    equipamientos.set(equipamientos.indexOf(encontrado), equipamientoNuevo);
-                    return equipamientoNuevo;
+                .orElseThrow(() -> new CocheException("El equipamiento " + equipamientoViejo.getExtra() + " no existe"));
+
+        // Se ignora el propio equipamiento viejo para permitir modificarlo manteniendo su identidad
+        if (equipamientos.stream()
+                .filter(e -> e != encontrado)
+                .anyMatch(e -> e.equals(equipamientoNuevo))) {
+            throw new CocheException("El equipamiento " + equipamientoNuevo.getExtra() + " ya existe");
+        }
+
+        equipamientos.replaceAll(e -> e == encontrado ? equipamientoNuevo : e);
+        return equipamientoNuevo;
     }
 
     public List<Equipamiento> ordenarEquipamiento(){
