@@ -12,7 +12,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import java.io.BufferedReader;
 import java.io.File;
+import java.nio.file.Files;
 
 public class Gestor {
 
@@ -54,7 +56,9 @@ public class Gestor {
         Jsonb jsonb = JsonbBuilder.create(config);
         System.out.println(jsonb.toJson(concesionario));
     }
-    public  void leerCsv(){
+    public  void leerCsv(Concesionario concesionario){
+        try (BufferedReader br = Files.newBufferedReader()){
 
+        }
     }
 }
