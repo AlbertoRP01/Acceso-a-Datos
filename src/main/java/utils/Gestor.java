@@ -57,8 +57,6 @@ public class Gestor {
         System.out.println(jsonb.toJson(concesionario));
     }
     public  void leerCsv(Concesionario concesionario){
-        try (BufferedReader br = Files.newBufferedReader()){
 
-        }
     }
 }
