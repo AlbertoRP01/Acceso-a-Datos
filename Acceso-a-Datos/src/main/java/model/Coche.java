@@ -2,128 +2,162 @@ package model;
 
 import exceptions.CocheException;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
-import java.util.ArrayList;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
-@XmlType(propOrder = {"id", "matriculaCoche", "marca", "modelo", "equipamiento"})
+/**
+ * Representa un coche del concesionario.
+ * La matrícula es la clave: identifica al coche y no se puede modificar.
+ */
+@XmlAccessorType(XmlAccessType.FIELD) // JAXB lee y escribe los atributos directamente, sin necesitar setters
+@XmlType(propOrder = {"matriculaCoche", "marca", "modelo", "equipamiento"}) // nombres de los ATRIBUTOS Java, no de las etiquetas
 public class Coche {
-    private static int idNext = 1;
-    private int id;
-    private String matriculaCoche;
-    private String marca;
-    private String modelo;
-    private List<Equipamiento> equipamientos;
 
+    @XmlAttribute // <coche id="1">: es atributo de la etiqueta, no un elemento hijo
+    private int id;
+
+    @XmlElement(name = "matricula-coche") // el nombre de la etiqueta no coincide con el del atributo
+    private String matriculaCoche;
+
+    private String marca;
+
+    private String modelo;
+
+    @XmlElement(name = "equipamiento") // un solo objeto por coche; los <extra> van dentro de Equipamiento
+    private Equipamiento equipamiento = new Equipamiento(); // inicializado: un coche sin extras genera <equipamiento/>
+
+    /**
+     * Constructor vacío. Lo usan JAXB y Jackson para crear el objeto antes de rellenarlo.
+     * No valida nada porque todavía no hay datos.
+     */
     public Coche() {
-        this.id = idNext++;
-        setMatriculaCoche(this.matriculaCoche); ;
-        setMarca(this.matriculaCoche);
-        setModelo(this.modelo);
-        equipamientos = new ArrayList<>();
     }
 
+    /**
+     * Crea un coche validando sus datos. Se usa al insertar desde el menú o al importar el CSV.
+     *
+     * @param matriculaCoche matrícula del coche (clave, no puede estar vacía)
+     * @param marca          marca del coche
+     * @param modelo         modelo del coche
+     * @param extras         lista de extras; puede ser null o vacía
+     * @throws CocheException si la matrícula, la marca o el modelo están vacíos
+     */
+    public Coche(String matriculaCoche, String marca, String modelo, List<String> extras) throws CocheException {
+        // La matrícula solo se asigna aquí: no existe setMatriculaCoche porque no se puede modificar
+        this.matriculaCoche = validarTexto(matriculaCoche, "matrícula");
+        setMarca(marca);
+        setModelo(modelo);
+        if (extras != null) {
+            extras.forEach(equipamiento::annadirExtra);
+        }
+    }
 
-    @XmlElement(name = "id")
+    /**
+     * Comprueba que un texto no sea nulo ni esté vacío. Método auxiliar para no repetir la validación.
+     *
+     * @param valor texto a comprobar
+     * @param campo nombre del campo, para el mensaje de error
+     * @return el texto sin espacios al principio ni al final
+     * @throws CocheException si el texto es nulo o está vacío
+     */
+    private static String validarTexto(String valor, String campo) throws CocheException {
+        if (valor == null || valor.isBlank()) {
+            throw new CocheException("El coche debe tener " + campo);
+        }
+        return valor.trim();
+    }
+
+    /**
+     * @return el identificador numérico del coche
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * Asigna el identificador. Lo usa el concesionario al añadir coches nuevos.
+     *
+     * @param id identificador numérico
+     */
     public void setId(int id) {
         this.id = id;
     }
 
-
-    @XmlElement(name = "matricula")
+    /**
+     * @return la matrícula del coche
+     */
     public String getMatriculaCoche() {
         return matriculaCoche;
     }
 
-    public void setMatriculaCoche(String matriculaCoche) {
-        if (matriculaCoche == null || matriculaCoche.isEmpty()){
-            throw new CocheException("El coche debe de tener matricula");
-        }
-        this.matriculaCoche = matriculaCoche;
-    }
-
-
-    @XmlElement(name = "marca")
+    /**
+     * @return la marca del coche
+     */
     public String getMarca() {
         return marca;
     }
 
-    public void setMarca(String marca) {
-        if (marca == null || marca.isEmpty()){
-            throw new CocheException("El coche debe de tener marca");
-        }
-        this.marca = marca;
+    /**
+     * @param marca nueva marca del coche
+     * @throws CocheException si la marca está vacía
+     */
+    public void setMarca(String marca) throws CocheException {
+        this.marca = validarTexto(marca, "marca");
     }
 
-
-    @XmlElement(name = "modelo")
+    /**
+     * @return el modelo del coche
+     */
     public String getModelo() {
         return modelo;
     }
 
-    public void setModelo(String modelo) {
-        if (modelo == null || modelo.isEmpty()){
-            throw new CocheException("El coche debe de tener modelo");
-        }
-        this.modelo = modelo;
+    /**
+     * @param modelo nuevo modelo del coche
+     * @throws CocheException si el modelo está vacío
+     */
+    public void setModelo(String modelo) throws CocheException {
+        this.modelo = validarTexto(modelo, "modelo");
     }
 
-
-    @XmlElement(name = "equipamiento")
-    public List<Equipamiento> getEquipamientos() {
-        return equipamientos;
+    /**
+     * @return el equipamiento del coche (nunca null)
+     */
+    public Equipamiento getEquipamiento() {
+        return equipamiento;
     }
 
-    public void setEquipamientos(List<Equipamiento> equipamientos) {
-        this.equipamientos = equipamientos;
+    /**
+     * Sustituye el equipamiento del coche (útil al modificar un registro).
+     *
+     * @param equipamiento nuevo equipamiento; si es null se deja uno vacío
+     */
+    public void setEquipamiento(Equipamiento equipamiento) {
+        this.equipamiento = (equipamiento == null) ? new Equipamiento() : equipamiento;
     }
 
-    public void annadirEquipamiento(Equipamiento equipamientos) throws CocheException {
-        if (this.equipamientos.stream().anyMatch(e -> e.equals(equipamientos))) {
-            throw new CocheException("Este Equipamiento ya existe");
-        }
-        this.equipamientos.add(equipamientos);
+    /**
+     * Dos coches son iguales si tienen la misma matrícula (sin distinguir mayúsculas).
+     * Es lo que permite al concesionario detectar matrículas duplicadas.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Coche otro)) return false;
+        return matriculaCoche != null && matriculaCoche.equalsIgnoreCase(otro.matriculaCoche);
     }
 
-    public void borrar(Equipamiento equipamientos) throws CocheException {
-        if (!this.equipamientos.removeIf(e -> e.equals(equipamientos))) {
-            throw new CocheException("El equipamiento no existe en el coche");
-        }
-    }
-
-    public Equipamiento modificarEquipamiento(Equipamiento equipamientoViejo, Equipamiento equipamientoNuevo) throws CocheException {
-        if (equipamientoViejo == null) {
-            throw new CocheException("Debe seleccionar el equipamiento que quiere modificar");
-        }
-        if (equipamientoNuevo == null) {
-            throw new CocheException("Debe indicar los nuevos datos del equipamiento");
-        }
-        Equipamiento encontrado = equipamientos.stream()
-                .filter(e -> e.equals(equipamientoViejo))
-                .findFirst()
-                .orElseThrow(() -> new CocheException("El equipamiento " + equipamientoViejo.getExtra() + " no existe"));
-
-        // Se ignora el propio equipamiento viejo para permitir modificarlo manteniendo su identidad
-        if (equipamientos.stream()
-                .filter(e -> e != encontrado)
-                .anyMatch(e -> e.equals(equipamientoNuevo))) {
-            throw new CocheException("El equipamiento " + equipamientoNuevo.getExtra() + " ya existe");
-        }
-
-        equipamientos.replaceAll(e -> e == encontrado ? equipamientoNuevo : e);
-        return equipamientoNuevo;
-    }
-
-    public List<Equipamiento> ordenarEquipamiento(){
-        return equipamientos.stream()
-                .sorted((e1, e2) -> e1.getExtra().compareToIgnoreCase(e2.getExtra()))
-                .collect(Collectors.toList());
+    /**
+     * Coherente con equals: se calcula a partir de la matrícula en minúsculas.
+     */
+    @Override
+    public int hashCode() {
+        return matriculaCoche == null ? 0 : Objects.hash(matriculaCoche.toLowerCase());
     }
 
     @Override
@@ -134,8 +168,7 @@ public class Coche {
         sb.append("Matricula: ").append(getMatriculaCoche()).append("\n");
         sb.append("Marca: ").append(getMarca()).append("\n");
         sb.append("Modelo: ").append(getModelo()).append("\n");
-        sb.append("Equipamiento: ").append(getEquipamientos());
+        sb.append("Equipamiento: ").append(getEquipamiento().getExtra());
         return sb.toString();
     }
-
 }

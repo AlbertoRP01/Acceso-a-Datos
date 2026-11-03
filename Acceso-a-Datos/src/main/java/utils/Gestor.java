@@ -3,13 +3,13 @@ package utils;
 import model.Coche;
 import model.Concesionario;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 
 public class Gestor {
@@ -46,11 +46,13 @@ public class Gestor {
         Concesionario concesionario = new Concesionario();
         Coche coche = new Coche();
         concesionario.annadirCoches(coche);
-        JsonbConfig config = new JsonbConfig().withFormatting(true);
-        Jsonb jsonb = JsonbBuilder.create(config);
-        System.out.println(jsonb.toJson(concesionario));
+        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT); // JSON con formato
+        try {
+            System.out.println(mapper.writeValueAsString(concesionario));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
-
 
 
 }
