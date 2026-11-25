@@ -106,6 +106,35 @@ public class ConexionDB {
     }
 
     /**
+     * Auxiliar de transacciones: hace rollback sin que un fallo aquí tape el error
+     * original. Lo usan los services que trabajan con transacciones (CSV y traspaso).
+     *
+     * @param con conexión en la que deshacer los cambios
+     */
+    public static void deshacer(Connection con) {
+        try {
+            con.rollback();
+        } catch (SQLException e) {
+            System.out.println("Aviso: no se pudo hacer rollback: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Auxiliar de transacciones: vuelve a activar el autocommit al terminar una
+     * transacción. Si no, las demás opciones del menú no guardarían nada. Se llama
+     * en el {@code finally}.
+     *
+     * @param con conexión a restaurar
+     */
+    public static void restaurarAutoCommit(Connection con) {
+        try {
+            con.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.out.println("Aviso: no se pudo restaurar el autocommit: " + e.getMessage());
+        }
+    }
+
+    /**
      * Cierra la conexión si está abierta. Si falla al cerrar solo avisa, y deja la conexión
      * a {@code null} igualmente para poder volver a conectar.
      */

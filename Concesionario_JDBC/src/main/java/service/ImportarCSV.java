@@ -4,6 +4,7 @@ import dao.CocheDAO;
 import exceptions.AppException;
 import model.Coche;
 import model.Extra;
+import utils.ConexionDB;
 import utils.PropertiesReader;
 
 import java.io.IOException;
@@ -121,16 +122,12 @@ public class ImportarCSV {
             return coches.size();
 
         } catch (SQLException e) {
-            deshacer(con);                // algo falló: se deshacen TODOS los inserts
+            ConexionDB.deshacer(con);     // algo falló: se deshacen TODOS los inserts
             throw new AppException("Error al importar el coche " + matricula
                     + ". No se ha importado ninguno: " + e.getMessage(), e);
         } finally {
             // dejo la conexión como estaba; si no, las demás opciones del menú no se guardarían
-            try {
-                con.setAutoCommit(true);
-            } catch (SQLException e) {
-                System.out.println("Aviso: no se pudo restaurar el autocommit: " + e.getMessage());
-            }
+            ConexionDB.restaurarAutoCommit(con);
         }
     }
 
@@ -163,18 +160,5 @@ public class ImportarCSV {
             }
         }
         return co;
-    }
-
-    /**
-     * Método auxiliar: hace rollback sin que un fallo aquí tape el error original.
-     *
-     * @param con conexión en la que deshacer los cambios
-     */
-    private static void deshacer(Connection con) {
-        try {
-            con.rollback();
-        } catch (SQLException e) {
-            System.out.println("Aviso: no se pudo hacer rollback: " + e.getMessage());
-        }
     }
 }

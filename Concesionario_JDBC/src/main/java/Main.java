@@ -4,7 +4,9 @@ import exceptions.AppException;
 import model.Coche;
 import model.Extra;
 import model.Propietario;
+import model.Traspaso;
 import service.ImportarCSV;
+import service.TraspasoService;
 import utils.ConexionDB;
 import utils.CreadorTablas;
 
@@ -96,7 +98,8 @@ public class Main {
             case "7" -> mostrarCoches(new CocheDAO(ConexionDB.getConexion()).listarConPropietario());
             case "8" -> modificarCoche();
             case "9" -> borrarCoche();
-            case "10", "11", "12" -> System.out.println("⏳ Pendiente: falta el service de esta opción");
+            case "10" -> realizarTraspaso();
+            case "11", "12" -> System.out.println("⏳ Pendiente: falta el service de esta opción");
             case "0" -> { }   // sale del bucle en el main
             default -> System.out.println("Opción no válida");
         }
@@ -174,6 +177,17 @@ public class Main {
         } else {
             System.out.println("✅ Coche borrado");
         }
+    }
+
+    /** Opción 10: pide DNI del comprador, matrícula e importe, y hace el traspaso. */
+    private static void realizarTraspaso() throws AppException {
+        Traspaso t = TraspasoService.realizar(
+                ConexionDB.getConexion(),
+                leerTexto("DNI del comprador: "),
+                leerTexto("Matrícula del coche: "),
+                leerPrecio("Importe: "));
+        System.out.println("✅ Traspaso realizado");
+        System.out.println(t);
     }
 
     // ===================== MÉTODOS AUXILIARES =====================
