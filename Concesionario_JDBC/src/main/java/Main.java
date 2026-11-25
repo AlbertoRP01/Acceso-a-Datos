@@ -6,6 +6,7 @@ import model.Extra;
 import model.Propietario;
 import model.Traspaso;
 import service.ImportarCSV;
+import service.InformeService;
 import service.TraspasoService;
 import utils.ConexionDB;
 import utils.CreadorTablas;
@@ -100,7 +101,7 @@ public class Main {
             case "9" -> borrarCoche();
             case "10" -> realizarTraspaso();
             case "11" -> cochesPorMarca();
-            case "12" -> System.out.println("⏳ Pendiente: falta el service de esta opción");
+            case "12" -> System.out.println("✅ Informe generado en " + InformeService.generar(ConexionDB.getConexion()));
             case "0" -> { }   // sale del bucle en el main
             default -> System.out.println("Opción no válida");
         }

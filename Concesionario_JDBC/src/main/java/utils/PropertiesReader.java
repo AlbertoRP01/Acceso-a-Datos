@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Properties;
 
 /**
@@ -69,5 +70,21 @@ public class PropertiesReader {
      */
     public String get(String propiedad) {
         return p.getProperty(propiedad);
+    }
+
+    /**
+     * Lee una ruta de fichero del {@code config.properties} y comprueba que esté. Lo usan
+     * el importador del CSV y el informe.
+     *
+     * @param clave clave en {@code config.properties}, por ejemplo {@code csv.ruta}
+     * @return la ruta. Si es relativa, se cuenta desde la carpeta en la que se ejecuta el programa
+     * @throws AppException si el fichero de configuración no se puede leer o falta la clave
+     */
+    public static Path getRuta(String clave) throws AppException {
+        String ruta = getInstance().get(clave);
+        if (ruta == null || ruta.isBlank()) {
+            throw new AppException("Falta la ruta '" + clave + "' en el fichero config.properties. Ábrelo y añádela.");
+        }
+        return Path.of(ruta.trim());
     }
 }

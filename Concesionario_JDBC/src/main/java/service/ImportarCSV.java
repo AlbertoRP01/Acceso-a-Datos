@@ -41,22 +41,7 @@ public class ImportarCSV {
      * @throws AppException si falta la clave en el fichero de configuración
      */
     public ImportarCSV() throws AppException {
-        this.rutaCsv = Path.of(leerRuta("csv.ruta"));
-    }
-
-    /**
-     * Método auxiliar: lee una ruta del fichero de configuración y comprueba que esté.
-     *
-     * @param clave clave en {@code config.properties}
-     * @return la ruta, sin espacios
-     * @throws AppException si la clave no está o está vacía
-     */
-    private static String leerRuta(String clave) throws AppException {
-        String ruta = PropertiesReader.getInstance().get(clave);
-        if (ruta == null || ruta.isBlank()) {
-            throw new AppException("Falta la ruta '" + clave + "' en el fichero config.properties. Ábrelo y añádela.");
-        }
-        return ruta.trim();
+        this.rutaCsv = PropertiesReader.getRuta("csv.ruta");
     }
 
     /**
