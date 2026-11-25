@@ -99,7 +99,8 @@ public class Main {
             case "8" -> modificarCoche();
             case "9" -> borrarCoche();
             case "10" -> realizarTraspaso();
-            case "11", "12" -> System.out.println("⏳ Pendiente: falta el service de esta opción");
+            case "11" -> cochesPorMarca();
+            case "12" -> System.out.println("⏳ Pendiente: falta el service de esta opción");
             case "0" -> { }   // sale del bucle en el main
             default -> System.out.println("Opción no válida");
         }
@@ -188,6 +189,16 @@ public class Main {
                 leerPrecio("Importe: "));
         System.out.println("✅ Traspaso realizado");
         System.out.println(t);
+    }
+
+    /** Opción 11 (solo MySQL): pide una marca y llama al procedimiento almacenado. */
+    private static void cochesPorMarca() throws AppException, SQLException {
+        // compruebo primero la conexión (getConexion lanza "Primero conecta..." si no hay)
+        CocheDAO dao = new CocheDAO(ConexionDB.getConexion());
+        if (ConexionDB.getMotor() != ConexionDB.Motor.MYSQL) {
+            throw new AppException("Los procedimientos almacenados solo funcionan con MySQL (SQLite no los tiene)");
+        }
+        mostrarCoches(dao.listarPorMarcaProcedimiento(leerTexto("Marca: ")));
     }
 
     // ===================== MÉTODOS AUXILIARES =====================

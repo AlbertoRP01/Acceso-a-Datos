@@ -114,6 +114,25 @@ public class CocheDAO {
     }
 
     /**
+     * Opción 11 (solo MySQL): llama al procedimiento almacenado {@code sp_coches_por_marca}.
+     * <p>
+     * Se usa {@link CallableStatement}, que es el que sirve para llamar a procedimientos.
+     * Como CallableStatement hereda de PreparedStatement, puedo leer el resultado con el
+     * mismo método auxiliar {@code leerLista} que el resto de consultas.
+     *
+     * @param marca marca a buscar
+     * @return coches de esa marca (vacía si no hay ninguno)
+     * @throws SQLException si falla la llamada (por ejemplo, si el procedimiento no existe)
+     */
+    public List<Coche> listarPorMarcaProcedimiento(String marca) throws SQLException {
+        // {call ...} es la sintaxis estándar de JDBC para llamar a un procedimiento
+        try (CallableStatement cs = con.prepareCall("{call sp_coches_por_marca(?)}")) {
+            cs.setString(1, marca);
+            return leerLista(cs);
+        }
+    }
+
+    /**
      * Opción 8: actualiza los datos de un coche, menos la matrícula (que es la clave
      * primaria y sirve para saber qué coche cambiar).
      *

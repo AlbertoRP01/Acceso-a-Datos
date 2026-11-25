@@ -90,9 +90,39 @@ public class CreadorTablas {
             for (String sql : ddl) {
                 st.executeUpdate(sql);
             }
+            // SQLite no tiene procedimientos almacenados: solo se crea en MySQL
+            if (ConexionDB.getMotor() == ConexionDB.Motor.MYSQL) {
+                crearProcedimiento(st);
+            }
         } catch (SQLException e) {
             throw new AppException("Error al crear las tablas: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Crea el procedimiento almacenado {@code sp_coches_por_marca} (solo MySQL), que
+     * devuelve los coches de una marca con el DNI de su propietario.
+     * <p>
+     * Primero lo borra si existe y luego lo crea, así siempre queda la última versión.
+     * Desde JDBC no hace falta el {@code DELIMITER} de Workbench: cada sentencia se
+     * envía por separado, así que el {@code ;} de dentro del procedimiento no molesta.
+     * <p>
+     * Devuelve las mismas columnas que los SELECT de {@code CocheDAO}, para poder leer
+     * el resultado con el mismo método auxiliar.
+     *
+     * @param st Statement abierto sobre la conexión
+     * @throws SQLException si falla el DROP o el CREATE
+     */
+    private static void crearProcedimiento(Statement st) throws SQLException {
+        st.executeUpdate("DROP PROCEDURE IF EXISTS sp_coches_por_marca");
+        st.executeUpdate(
+                "CREATE PROCEDURE sp_coches_por_marca(IN p_marca VARCHAR(50))"
+                        + " BEGIN"
+                        + "   SELECT c.matricula, c.marca, c.modelo, c.precio, c.id_propietario, p.dni"
+                        + "   FROM coches c LEFT JOIN propietarios p ON c.id_propietario = p.id_propietario"
+                        + "   WHERE c.marca = p_marca"
+                        + "   ORDER BY c.modelo, c.matricula;"
+                        + " END");
     }
 
     /**
