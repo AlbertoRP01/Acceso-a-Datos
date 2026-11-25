@@ -1,0 +1,121 @@
+==========================================================
+  CONCESIONARIO JDBC - LEEME
+==========================================================
+
+Programa en Java que gestiona un concesionario de coches con JDBC.
+Funciona con dos gestores de base de datos: MySQL (servidor) y SQLite
+(embebida). Se elige cuál usar en la opción 1 del menú, y los datos de
+conexión se leen de src/main/resources/config.properties.
+
+
+----------------------------------------------------------
+1. CONECTORES JDBC
+----------------------------------------------------------
+
+VENTAJAS
+
+- Una sola API para varias bases de datos. Connection, PreparedStatement,
+  ResultSet y CallableStatement son las mismas para MySQL y para SQLite.
+  Los DAO del proyecto son los mismos para las dos: solo cambia el driver
+  y la URL, que vienen del config.properties.
+
+- Cambiar de gestor es fácil: basta con añadir el driver en el pom.xml
+  (mysql-connector-j, sqlite-jdbc) y cambiar la URL de conexión.
+
+- PreparedStatement evita la inyección SQL, porque los datos van en los
+  parámetros (?) y no pegados al texto de la consulta.
+
+- Control directo de las transacciones con setAutoCommit(false), commit()
+  y rollback(). Lo he usado en la importación del CSV (o se insertan
+  todos los coches o ninguno) y en los traspasos (cambiar el propietario
+  y registrar la venta van juntos).
+
+- Con try-with-resources los Statement y ResultSet se cierran solos,
+  aunque salte una excepción.
+
+INCONVENIENTES
+
+- Hay que escribir mucho código repetitivo: preparar la sentencia, poner
+  cada parámetro, recorrer el ResultSet y pasar cada fila a un objeto a
+  mano. Para no repetirlo he usado métodos auxiliares (leerLista, leerUno).
+
+- El SQL va dentro de Strings, así que los errores (una columna mal
+  escrita, "EXISTS" sin la S...) no se ven al compilar, solo al ejecutar.
+
+- Los NULL hay que tratarlos a mano: rs.getInt() devuelve 0 si la columna
+  es NULL, y setInt() no admite null. Hay que usar getObject() y
+  setObject(..., Types.INTEGER).
+
+- "Una sola API" no significa "el mismo SQL": cada gestor tiene sus
+  diferencias (ver el punto 3) y el programa tiene que tenerlas en cuenta.
+
+- Casi todo lanza SQLException, que es una excepción comprobada, así que
+  hay que capturarla o declararla en todos los métodos.
+
+
+----------------------------------------------------------
+2. SQLITE (EMBEBIDA) FRENTE A MYSQL (SERVIDOR)
+----------------------------------------------------------
+
+SQLITE - VENTAJAS
+- No hay que instalar ni arrancar nada: la base de datos es un fichero
+  (concesionario.db) que se crea solo la primera vez.
+- No necesita usuario ni contraseña.
+- Es muy fácil de copiar o de llevar a otro ordenador: basta con el
+  fichero. Ideal para probar el programa rápido o para una aplicación
+  de un solo usuario.
+
+SQLITE - INCONVENIENTES
+- No tiene procedimientos almacenados, por eso la opción 11 solo
+  funciona con MySQL.
+- Las claves foráneas vienen desactivadas: hay que activarlas en cada
+  conexión con PRAGMA foreign_keys = ON. Si no, deja insertar
+  referencias a filas que no existen sin dar error.
+- Es poco estricta con los tipos: no tiene tipo fecha (las fechas las
+  guardo como texto 'AAAA-MM-DD') y deja guardar un texto en una
+  columna numérica.
+- No está pensada para muchos usuarios escribiendo a la vez.
+
+MYSQL - VENTAJAS
+- Es un servidor: varios usuarios o programas pueden usar la misma base
+  de datos a la vez, incluso desde otros ordenadores.
+- Tiene procedimientos almacenados, usuarios y permisos.
+- Es más estricta con los tipos y las claves foráneas funcionan siempre.
+- Tiene herramientas como MySQL Workbench para ver y gestionar los datos.
+
+MYSQL - INCONVENIENTES
+- Hay que instalar el servidor, tenerlo arrancado y configurar usuario y
+  contraseña. Si el servidor está parado, el programa no puede conectar.
+- Más difícil de llevar a otro ordenador: hay que exportar los datos
+  o volver a crear la base de datos.
+
+
+----------------------------------------------------------
+3. DIFERENCIAS QUE HE TENIDO QUE RESOLVER EN EL CÓDIGO
+----------------------------------------------------------
+
+- Clave autonumérica: MySQL usa "INT AUTO_INCREMENT" y SQLite
+  "INTEGER PRIMARY KEY AUTOINCREMENT". El resto del DDL es igual, así que
+  un método auxiliar (idAutonumerico) elige el texto según el gestor.
+
+- Crear la base de datos: en MySQL me conecto al servidor, la creo con
+  CREATE DATABASE IF NOT EXISTS y entro con setCatalog(). En SQLite no
+  hace falta: el fichero se crea al conectar.
+
+- Clave repetida (DNI o matrícula): MySQL lanza
+  SQLIntegrityConstraintViolationException y SQLite una SQLException
+  con el código de error 19. El menú comprueba las dos cosas.
+
+- Procedimiento almacenado: se crea desde Java solo en MySQL y se llama
+  con CallableStatement ("{call sp_coches_por_marca(?)}").
+
+
+----------------------------------------------------------
+4. CONCLUSIÓN
+----------------------------------------------------------
+
+Para este proyecto, SQLite es más cómoda para desarrollar y probar,
+porque no hay que montar nada. MySQL es la opción adecuada para un
+concesionario real, con varios empleados usando el programa a la vez y
+con los datos en un servidor. JDBC permite tener las dos con el mismo
+código, siempre que se tengan en cuenta sus diferencias.
