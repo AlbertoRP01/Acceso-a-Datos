@@ -41,13 +41,8 @@ public class CocheDAO {
             ps.setString(2, co.getMarca());
             ps.setString(3, co.getModelo());
             ps.setBigDecimal(4, co.getPrecio());
-            // si no tiene propietario (es del concesionario) hay que meter NULL con setNull,
-            // porque setInt no admite null
-            if (co.tienePropietario()) {
-                ps.setInt(5, co.getIdPropietario());
-            } else {
-                ps.setNull(5, Types.INTEGER);
-            }
+            // setObject admite null (setInt no): si es del concesionario se guarda NULL
+            ps.setObject(5, co.getIdPropietario(), Types.INTEGER);
             ps.executeUpdate();
         }
 
