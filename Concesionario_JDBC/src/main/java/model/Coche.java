@@ -61,13 +61,6 @@ public class Coche {
         extras.add(extra);
     }
 
-    /**
-     * @return {@code true} si el coche tiene propietario, {@code false} si es del concesionario
-     */
-    public boolean tienePropietario() {
-        return idPropietario != null;
-    }
-
     public String getMatricula() {
         return matricula;
     }
@@ -146,7 +139,7 @@ public class Coche {
      * si no, el id; y si no tiene propietario, "concesionario".
      */
     private String textoPropietario() {
-        if (!tienePropietario()) {
+        if (idPropietario == null) {
             return "concesionario";
         }
         return dniPropietario != null ? "DNI " + dniPropietario : "id " + idPropietario;

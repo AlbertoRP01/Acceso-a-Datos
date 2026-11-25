@@ -14,9 +14,14 @@ import java.util.List;
  * qué mensaje mostrar (por ejemplo, si la matrícula ya existe).
  */
 public class CocheDAO {
-    /** Columnas que leo siempre de un coche. Así no repito la lista en cada SELECT. */
+    /**
+     * SELECT base de un coche, con el DNI de su propietario. Así no repito la lista en cada
+     * consulta. Es LEFT JOIN para que salgan también los coches sin propietario
+     * (con dni = NULL).
+     */
     private static final String SELECT_COCHE =
-            "SELECT matricula, marca, modelo, precio, id_propietario FROM coches";
+            "SELECT c.matricula, c.marca, c.modelo, c.precio, c.id_propietario, p.dni"
+                    + " FROM coches c LEFT JOIN propietarios p ON c.id_propietario = p.id_propietario";
 
     private final Connection con;
     private final ExtraDAO extraDAO;
@@ -69,10 +74,10 @@ public class CocheDAO {
      * @throws SQLException si falla la consulta
      */
     public Coche buscarPorMatricula(String matricula) throws SQLException {
-        String sql = SELECT_COCHE + " WHERE matricula = ?";
+        String sql = SELECT_COCHE + " WHERE c.matricula = ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, matricula);
-            List<Coche> lista = leerLista(ps, false);
+            List<Coche> lista = leerLista(ps);
             return lista.isEmpty() ? null : lista.get(0);
         }
     }
@@ -85,9 +90,9 @@ public class CocheDAO {
      */
     public List<Coche> listarSinPropietario() throws SQLException {
         // IS NULL y no "= NULL": en SQL, comparar con = NULL nunca da verdadero
-        String sql = SELECT_COCHE + " WHERE id_propietario IS NULL ORDER BY matricula";
+        String sql = SELECT_COCHE + " WHERE c.id_propietario IS NULL ORDER BY c.matricula";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            return leerLista(ps, false);
+            return leerLista(ps);
         }
     }
 
@@ -104,7 +109,7 @@ public class CocheDAO {
                 + " FROM coches c JOIN propietarios p ON c.id_propietario = p.id_propietario"
                 + " ORDER BY p.dni, c.matricula";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            return leerLista(ps, true);
+            return leerLista(ps);
         }
     }
 
@@ -113,10 +118,10 @@ public class CocheDAO {
      * primaria y sirve para saber qué coche cambiar).
      *
      * @param co coche con los datos nuevos
-     * @return {@code true} si se ha actualizado, {@code false} si no existe esa matrícula
+     * @return número de filas actualizadas: 1 si se ha actualizado, 0 si no existe esa matrícula
      * @throws SQLException si falla el UPDATE
      */
-    public boolean actualizar(Coche co) throws SQLException {
+    public int actualizar(Coche co) throws SQLException {
         String sql = "UPDATE coches SET marca = ?, modelo = ?, precio = ? WHERE matricula = ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, co.getMarca());
@@ -124,7 +129,7 @@ public class CocheDAO {
             ps.setBigDecimal(3, co.getPrecio());
             ps.setString(4, co.getMatricula());
             // executeUpdate devuelve cuántas filas ha cambiado: 0 = esa matrícula no existe
-            return ps.executeUpdate() > 0;
+            return ps.executeUpdate();
         }
     }
 
@@ -133,14 +138,14 @@ public class CocheDAO {
      * por el {@code ON DELETE CASCADE} de las tablas.
      *
      * @param matricula matrícula del coche a borrar
-     * @return {@code true} si se ha borrado, {@code false} si no existe esa matrícula
+     * @return número de filas borradas: 1 si se ha borrado, 0 si no existe esa matrícula
      * @throws SQLException si falla el DELETE
      */
-    public boolean borrar(String matricula) throws SQLException {
+    public int borrar(String matricula) throws SQLException {
         String sql = "DELETE FROM coches WHERE matricula = ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, matricula);
-            return ps.executeUpdate() > 0;
+            return ps.executeUpdate();
         }
     }
 
@@ -163,14 +168,14 @@ public class CocheDAO {
 
     /**
      * Método auxiliar: ejecuta el SELECT ya preparado y convierte cada fila en un
-     * {@link Coche} con sus extras. Lo usan buscarPorMatricula y los dos listados.
+     * {@link Coche} con sus extras. Lo usan buscarPorMatricula y los dos listados (todas
+     * las consultas traen las mismas columnas, incluido el dni).
      *
-     * @param ps     consulta preparada con sus parámetros ya puestos
-     * @param conDni {@code true} si la consulta trae también la columna {@code dni} (JOIN)
+     * @param ps consulta preparada con sus parámetros ya puestos
      * @return lista de coches (vacía si no hay filas)
      * @throws SQLException si falla la consulta
      */
-    private List<Coche> leerLista(PreparedStatement ps, boolean conDni) throws SQLException {
+    private List<Coche> leerLista(PreparedStatement ps) throws SQLException {
         List<Coche> lista = new ArrayList<>();
         try (ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -182,9 +187,7 @@ public class CocheDAO {
                         rs.getString("modelo"),
                         rs.getBigDecimal("precio"),
                         idPropietario);
-                if (conDni) {
-                    co.setDniPropietario(rs.getString("dni"));
-                }
+                co.setDniPropietario(rs.getString("dni"));   // null si es del concesionario
                 lista.add(co);
             }
         }
