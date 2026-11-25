@@ -40,11 +40,11 @@ public class Main {
             try {
                 ejecutarOpcion(opcion);
             } catch (AppException e) {
-                System.out.println("❌ " + e.getMessage());
+                System.out.println( e.getMessage());
             } catch (SQLException e) {
-                System.out.println("❌ " + mensajeSQL(e));
+                System.out.println( mensajeSQL(e));
             } catch (NumberFormatException e) {
-                System.out.println("❌ Número no válido. Usa el formato 15000.50");
+                System.out.println(" Número no válido. Usa el formato 15000.50");
             }
         } while (!opcion.equals("0"));
 
@@ -87,13 +87,13 @@ public class Main {
             case "1" -> conectar();
             case "2" -> {
                 CreadorTablas.crearTablas();
-                System.out.println("✅ Tablas creadas (o ya existían)");
+                System.out.println("Tablas creadas (o ya existían)");
             }
             case "3" -> registrarPropietario();
             case "4" -> insertarCoche();
             case "5" -> {
                 int total = new ImportarCSV().importar(ConexionDB.getConexion());
-                System.out.println("✅ Importados " + total + " coches del CSV");
+                System.out.println("Importados " + total + " coches del CSV");
             }
             case "6" -> mostrarCoches(new CocheDAO(ConexionDB.getConexion()).listarSinPropietario());
             case "7" -> mostrarCoches(new CocheDAO(ConexionDB.getConexion()).listarConPropietario());
@@ -101,7 +101,7 @@ public class Main {
             case "9" -> borrarCoche();
             case "10" -> realizarTraspaso();
             case "11" -> cochesPorMarca();
-            case "12" -> System.out.println("✅ Informe generado en " + InformeService.generar(ConexionDB.getConexion()));
+            case "12" -> System.out.println("Informe generado en " + InformeService.generar(ConexionDB.getConexion()));
             case "0" -> { }   // sale del bucle en el main
             default -> System.out.println("Opción no válida");
         }
@@ -118,7 +118,7 @@ public class Main {
             default -> throw new AppException("Opción no válida, elige 1 o 2");
         };
         ConexionDB.abrir(motor);
-        System.out.println("✅ Conectado a " + motor);
+        System.out.println("Conectado a " + motor);
     }
 
     /** Opción 3: pide los datos de un propietario y lo inserta. */
@@ -130,7 +130,7 @@ public class Main {
                 leerTexto("Apellidos: "),
                 leerTexto("Teléfono: "));
         dao.insertar(p);
-        System.out.println("✅ Propietario registrado con id " + p.getIdPropietario());
+        System.out.println("Propietario registrado con id " + p.getIdPropietario());
     }
 
     /** Opción 4: pide los datos de un coche y lo inserta sin propietario (es del concesionario). */
@@ -148,7 +148,7 @@ public class Main {
             }
         }
         dao.insertar(co);
-        System.out.println("✅ Coche insertado");
+        System.out.println("Coche insertado");
     }
 
     /** Opción 8: pide una matrícula y los datos nuevos (menos la matrícula) y actualiza. */
@@ -167,7 +167,7 @@ public class Main {
                 leerTexto("Nuevo modelo: "),
                 leerPrecio("Nuevo precio: "));
         dao.actualizar(nuevo);
-        System.out.println("✅ Coche modificado");
+        System.out.println("Coche modificado");
     }
 
     /** Opción 9: pide una matrícula y borra el coche. */
@@ -177,7 +177,7 @@ public class Main {
         if (dao.borrar(matricula) == 0) {
             System.out.println("No existe ningún coche con la matrícula " + matricula);
         } else {
-            System.out.println("✅ Coche borrado");
+            System.out.println("Coche borrado");
         }
     }
 
@@ -188,7 +188,7 @@ public class Main {
                 leerTexto("DNI del comprador: "),
                 leerTexto("Matrícula del coche: "),
                 leerPrecio("Importe: "));
-        System.out.println("✅ Traspaso realizado");
+        System.out.println("Traspaso realizado");
         System.out.println(t);
     }
 
