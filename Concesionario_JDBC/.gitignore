@@ -40,4 +40,4 @@ build/
 
 ### Ficheros que genera el programa ###
 concesionario.db
-informe_concesionario.txt
+informes/

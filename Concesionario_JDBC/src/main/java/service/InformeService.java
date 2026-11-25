@@ -64,6 +64,11 @@ public class InformeService {
             lineas.add("------------------");
             lineas.addAll(extraMasRepetido(con));
 
+            // Files.write no crea carpetas: si la ruta tiene carpeta (informes/) la creo antes.
+            // createDirectories no da error si ya existe
+            if (ruta.getParent() != null) {
+                Files.createDirectories(ruta.getParent());
+            }
             // Files.write crea el fichero (o lo sobrescribe), escribe todas las líneas y lo cierra
             Files.write(ruta, lineas, StandardCharsets.UTF_8);
             return ruta.toAbsolutePath();
