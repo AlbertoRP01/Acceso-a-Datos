@@ -18,6 +18,7 @@ public class Coche {
     private List<Extra> extras;
     private BigDecimal precio;
     private Integer idPropietario;   // Integer y no int para poder guardar null (sin propietario)
+    private String dniPropietario;   // no es columna de coches: solo se rellena en el listado con JOIN (opción 7)
 
     /**
      * Constructor para un coche nuevo: todavía no tiene propietario, es del concesionario.
@@ -111,6 +112,14 @@ public class Coche {
         this.idPropietario = idPropietario;
     }
 
+    public String getDniPropietario() {
+        return dniPropietario;
+    }
+
+    public void setDniPropietario(String dniPropietario) {
+        this.dniPropietario = dniPropietario;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -119,7 +128,7 @@ public class Coche {
           .append("  Marca       : ").append(marca).append("\n")
           .append("  Modelo      : ").append(modelo).append("\n")
           .append("  Precio      : ").append(precio).append(" €\n")
-          .append("  Propietario : ").append(tienePropietario() ? idPropietario : "concesionario").append("\n")
+          .append("  Propietario : ").append(textoPropietario()).append("\n")
           .append("  Extras      : ");
 
         if (extras.isEmpty()) {
@@ -130,5 +139,16 @@ public class Coche {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * Método auxiliar del toString: si tengo el DNI (listado con JOIN) lo muestro,
+     * si no, el id; y si no tiene propietario, "concesionario".
+     */
+    private String textoPropietario() {
+        if (!tienePropietario()) {
+            return "concesionario";
+        }
+        return dniPropietario != null ? "DNI " + dniPropietario : "id " + idPropietario;
     }
 }
