@@ -4,6 +4,7 @@ import exceptions.AppException;
 import model.Coche;
 import model.Extra;
 import model.Propietario;
+import service.ImportarCSV;
 import utils.ConexionDB;
 import utils.CreadorTablas;
 
@@ -87,11 +88,15 @@ public class Main {
             }
             case "3" -> registrarPropietario();
             case "4" -> insertarCoche();
+            case "5" -> {
+                int total = new ImportarCSV().importar(ConexionDB.getConexion());
+                System.out.println("✅ Importados " + total + " coches del CSV");
+            }
             case "6" -> mostrarCoches(new CocheDAO(ConexionDB.getConexion()).listarSinPropietario());
             case "7" -> mostrarCoches(new CocheDAO(ConexionDB.getConexion()).listarConPropietario());
             case "8" -> modificarCoche();
             case "9" -> borrarCoche();
-            case "5", "10", "11", "12" -> System.out.println("⏳ Pendiente: falta el service de esta opción");
+            case "10", "11", "12" -> System.out.println("⏳ Pendiente: falta el service de esta opción");
             case "0" -> { }   // sale del bucle en el main
             default -> System.out.println("Opción no válida");
         }
